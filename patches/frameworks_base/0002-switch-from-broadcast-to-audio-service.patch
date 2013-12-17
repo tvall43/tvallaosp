@@ -1,0 +1,108 @@
+From 33b5df5173407851de5863b8bd59fb3359f292c6 Mon Sep 17 00:00:00 2001
+From: Danesh M <daneshm90@gmail.com>
+Date: Sun, 12 Aug 2012 15:21:35 -0400
+Subject: [PATCH] Framework Track Control: Switch from broadcast to audio
+ service
+
+Ordered broadcast is unreliable.
+Switch to using the Audio Service's dispatchMediaKeyWithWakeLockToAudioService
+as it sends the event to the correct receiver.
+---
+ .../internal/policy/impl/PhoneWindowManager.java   | 57 +++++-----------------
+ 1 file changed, 12 insertions(+), 45 deletions(-)
+
+diff --git a/policy/src/com/android/internal/policy/impl/PhoneWindowManager.java b/policy/src/com/android/internal/policy/impl/PhoneWindowManager.java
+index cc39d32..8455c47 100644
+--- a/policy/src/com/android/internal/policy/impl/PhoneWindowManager.java
++++ b/policy/src/com/android/internal/policy/impl/PhoneWindowManager.java
+@@ -487,6 +487,7 @@ public void onPointerEvent(MotionEvent motionEvent) {
+     private static final int MSG_DISABLE_POINTER_LOCATION = 2;
+     private static final int MSG_DISPATCH_MEDIA_KEY_WITH_WAKE_LOCK = 3;
+     private static final int MSG_DISPATCH_MEDIA_KEY_REPEAT_WITH_WAKE_LOCK = 4;
++    private static final int MSG_DISPATCH_VOLKEY_WITH_WAKE_LOCK = 5;
+ 
+     private class PolicyHandler extends Handler {
+         @Override
+@@ -504,6 +505,10 @@ public void handleMessage(Message msg) {
+                 case MSG_DISPATCH_MEDIA_KEY_REPEAT_WITH_WAKE_LOCK:
+                     dispatchMediaKeyRepeatWithWakeLock((KeyEvent)msg.obj);
+                     break;
++                case MSG_DISPATCH_VOLKEY_WITH_WAKE_LOCK:
++                    dispatchMediaKeyWithWakeLockToAudioService((KeyEvent)msg.obj);
++                    dispatchMediaKeyWithWakeLockToAudioService(KeyEvent.changeAction((KeyEvent)msg.obj, KeyEvent.ACTION_UP));
++                    break;
+             }
+         }
+     }
+@@ -703,49 +708,6 @@ private void cancelPendingPowerKeyAction() {
+         }
+     }
+ 
+-    /**
+-     * When a volumeup-key longpress expires, skip songs based on key press
+-     */
+-    Runnable mVolumeUpLongPress = new Runnable() {
+-        public void run() {
+-            // set the long press flag to true
+-            mIsLongPress = true;
+-            sendMediaButtonEvent(KeyEvent.KEYCODE_MEDIA_NEXT);
+-        };
+-    };
+-
+-    /**
+-     * When a volumedown-key longpress expires, skip songs based on key press
+-     */
+-    Runnable mVolumeDownLongPress = new Runnable() {
+-        public void run() {
+-            // set the long press flag to true
+-            mIsLongPress = true;
+-            sendMediaButtonEvent(KeyEvent.KEYCODE_MEDIA_PREVIOUS);
+-        };
+-    };
+-
+-    private void sendMediaButtonEvent(int code) {
+-        long eventtime = SystemClock.uptimeMillis();
+-        Intent keyIntent = new Intent(Intent.ACTION_MEDIA_BUTTON, null);
+-        KeyEvent keyEvent = new KeyEvent(eventtime, eventtime, KeyEvent.ACTION_DOWN, code, 0);
+-        keyIntent.putExtra(Intent.EXTRA_KEY_EVENT, keyEvent);
+-        mContext.sendOrderedBroadcast(keyIntent, null);
+-        keyEvent = KeyEvent.changeAction(keyEvent, KeyEvent.ACTION_UP);
+-        keyIntent.putExtra(Intent.EXTRA_KEY_EVENT, keyEvent);
+-        mContext.sendOrderedBroadcast(keyIntent, null);
+-    }
+-
+-    void handleVolumeLongPress(int keycode) {
+-        mHandler.postDelayed(keycode == KeyEvent.KEYCODE_VOLUME_UP ? mVolumeUpLongPress :
+-            mVolumeDownLongPress, ViewConfiguration.getLongPressTimeout());
+-    }
+-
+-    void handleVolumeLongPressAbort() {
+-        mHandler.removeCallbacks(mVolumeUpLongPress);
+-        mHandler.removeCallbacks(mVolumeDownLongPress);
+-    }
+-
+     private void interceptScreenshotChord() {
+         if (mScreenshotChordEnabled
+                 && mVolumeDownKeyTriggered && mPowerKeyTriggered && !mVolumeUpKeyTriggered) {
+@@ -4071,11 +4033,16 @@ public int interceptKeyBeforeQueueing(KeyEvent event, int policyFlags, boolean i
+                 if (isMusicActive() && (result & ACTION_PASS_TO_USER) == 0) {
+                     if (mVolBtnMusicControls && down && (keyCode != KeyEvent.KEYCODE_VOLUME_MUTE)) {
+                         mIsLongPress = false;
+-                        handleVolumeLongPress(keyCode);
++                        int newKeyCode = event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_UP ?
++                                KeyEvent.KEYCODE_MEDIA_NEXT : KeyEvent.KEYCODE_MEDIA_PREVIOUS;
++                        Message msg = mHandler.obtainMessage(MSG_DISPATCH_VOLKEY_WITH_WAKE_LOCK,
++                                new KeyEvent(event.getDownTime(), event.getEventTime(), event.getAction(), newKeyCode, 0));
++                        msg.setAsynchronous(true);
++                        mHandler.sendMessageDelayed(msg, ViewConfiguration.getLongPressTimeout());
+                         break;
+                     } else {
+                         if (mVolBtnMusicControls && !down) {
+-                            handleVolumeLongPressAbort();
++                        mHandler.removeMessages(MSG_DISPATCH_VOLKEY_WITH_WAKE_LOCK);
+                             if (mIsLongPress) {
+                                 break;
+                             }
+-- 
+1.8.5.1
+

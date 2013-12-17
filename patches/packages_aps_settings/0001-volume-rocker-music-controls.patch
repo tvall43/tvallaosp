@@ -1,0 +1,86 @@
+From 463d797a454b394e25464fbf7c9f521715d94677 Mon Sep 17 00:00:00 2001
+From: tvall43 <tvall43@gmail.com>
+Date: Wed, 11 Dec 2013 11:09:02 -0600
+Subject: [PATCH 1/1] volume rocker music controls
+
+Change-Id: I466cb45d93792e65a2b687b9c8946f8b76106585
+---
+ res/values/strings.xml                      |    4 ++++
+ res/xml/sound_settings.xml                  |    6 ++++++
+ src/com/android/settings/SoundSettings.java |    9 +++++++++
+ 3 files changed, 19 insertions(+)
+
+diff --git a/res/values/strings.xml b/res/values/strings.xml
+index 586373c..02beafd 100644
+--- a/res/values/strings.xml
++++ b/res/values/strings.xml
+@@ -4900,4 +4900,8 @@
+ 
+     <!-- Text to display in regulatory info screen (from device overlay). -->
+     <string name="regulatory_info_text"></string>
++
++    <string name="volbtn_music_controls_title">Volume rocker music controls</string>
++    <string name="volbtn_music_controls_summary">When screen off, long-pressing the volume rockers will seek music tracks</string>
++
+ </resources>
+diff --git a/res/xml/sound_settings.xml b/res/xml/sound_settings.xml
+index 26e2e20..d28578b 100644
+--- a/res/xml/sound_settings.xml
++++ b/res/xml/sound_settings.xml
+@@ -82,6 +82,12 @@
+             android:title="@string/haptic_feedback_enable_title"
+             android:defaultValue="true" />
+ 
++    <CheckBoxPreference
++            android:key="volbtn_music_controls"
++            android:title="@string/volbtn_music_controls_title"
++            android:summary="@string/volbtn_music_controls_summary"
++            android:persistent="false" />
++
+     <ListPreference
+             android:key="emergency_tone"
+             android:title="@string/emergency_tone_title"
+diff --git a/src/com/android/settings/SoundSettings.java b/src/com/android/settings/SoundSettings.java
+index 28d93f1..691b242 100644
+--- a/src/com/android/settings/SoundSettings.java
++++ b/src/com/android/settings/SoundSettings.java
+@@ -75,6 +75,7 @@ public class SoundSettings extends SettingsPreferenceFragment implements
+     private static final String KEY_DOCK_AUDIO_SETTINGS = "dock_audio";
+     private static final String KEY_DOCK_SOUNDS = "dock_sounds";
+     private static final String KEY_DOCK_AUDIO_MEDIA_ENABLED = "dock_audio_media_enabled";
++    private static final String KEY_VOLBTN_MUSIC_CTRL = "volbtn_music_controls";
+ 
+     private static final String[] NEED_VOICE_CAPABILITY = {
+             KEY_RINGTONE, KEY_DTMF_TONE, KEY_CATEGORY_CALLS,
+@@ -90,6 +91,7 @@ public class SoundSettings extends SettingsPreferenceFragment implements
+     private CheckBoxPreference mHapticFeedback;
+     private Preference mMusicFx;
+     private CheckBoxPreference mLockSounds;
++    private CheckBoxPreference mVolBtnMusicCtrl;
+     private Preference mRingtonePreference;
+     private Preference mNotificationPreference;
+ 
+@@ -172,6 +174,10 @@ public class SoundSettings extends SettingsPreferenceFragment implements
+         mLockSounds.setChecked(Settings.System.getInt(resolver,
+                 Settings.System.LOCKSCREEN_SOUNDS_ENABLED, 1) != 0);
+ 
++        mVolBtnMusicCtrl = (CheckBoxPreference) findPreference(KEY_VOLBTN_MUSIC_CTRL);
++        mVolBtnMusicCtrl.setChecked(Settings.System.getInt(resolver,
++                Settings.System.VOLBTN_MUSIC_CONTROLS, 1) != 0);
++
+         mRingtonePreference = findPreference(KEY_RINGTONE);
+         mNotificationPreference = findPreference(KEY_NOTIFICATION_SOUND);
+ 
+@@ -306,6 +312,9 @@ public class SoundSettings extends SettingsPreferenceFragment implements
+         } else if (preference == mMusicFx) {
+             // let the framework fire off the intent
+             return false;
++            } else if (preference == mVolBtnMusicCtrl) {
++                Settings.System.putInt(getContentResolver(), Settings.System.VOLBTN_MUSIC_CONTROLS,
++                        mVolBtnMusicCtrl.isChecked() ? 1 : 0);
+         } else if (preference == mDockAudioSettings) {
+             int dockState = mDockIntent != null
+                     ? mDockIntent.getIntExtra(Intent.EXTRA_DOCK_STATE, 0)
+-- 
+1.7.9.5
+

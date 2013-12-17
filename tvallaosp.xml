@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+ <remote  name="github"
+           fetch="https://github.com"
+           review="review.cyanogenmod.org" />
+
+  <!--remove-project name="device/lge/mako" />
+  <project name="tvall43/android_device_lge_mako" path="device/lge/mako" remote="github" revision="android_4.3.1_r1" />
+  <remove-project name="platform/packages/apps/Settings" />
+  <project name="tvall43/android_packages_apps_Settings" path="packages/apps/Settings" remote="github" revision="android_4.3.1_r1" /-->
+  <project name="tvall43/tvallaosp" path="vendor/tvall" remote="github" revision="master" />
+
+  <!--project name="koush/Superuser" path="external/koush/Superuser" remote="github" revision="master" />
+  <project name="koush/Widgets" path="external/koush/Widgets" remote="github" revision="master" /-->
+  <project path="packages/apps/Apollo" name="CyanogenMod/android_packages_apps_Apollo" remote="github" revision="cm-11.0" />
+  <project path="packages/apps/Torch" name="CyanogenMod/android_packages_apps_Torch" remote="github" revision="cm-11.0" />
+  <project path="packages/apps/CMFileManager" name="CyanogenMod/android_packages_apps_CMFileManager" remote="github" revision="cm-11.0" />
+  <project path="external/busybox" name="CyanogenMod/android_external_busybox" remote="github" revision="cm-11.0" />
+  <remove-project name="platform/bootable/recovery" />
+  <project path="bootable/recovery" name="TeamWin/Team-Win-Recovery-Project" remote="github" revision="twrp2.7" />
+  <!--project path="packages/apps/DSPManager" name="CyanogenMod/android_packages_apps_DSPManager" remote="github" revision="cm-11.0" /-->
+</manifest>

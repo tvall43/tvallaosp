@@ -1,0 +1,10 @@
+tvall's aosp rom.
+
+to build, fetch the aosp source. then place the tvallaosp.xml file from this repo in .repo/local_manifests/ and sync again.
+then, if you wish, apply the patches in the patches/ directory. (I'll eventually write a script for that, but its not a priority for me.
+
+devices currently supported by my rom:
+mako
+
+about this rom:
+this is what I use on my devices (currently just my nexus 4. decided to switch away from cm, and this was the result). posted on github mainly as an easy backup. enjoy if you wish. but don't expect support. patches are welcome.

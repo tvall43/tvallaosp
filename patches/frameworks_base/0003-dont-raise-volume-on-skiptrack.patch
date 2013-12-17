@@ -1,0 +1,26 @@
+From 8e690aff3e4b446b17fa6ddad8236db0b84de30e Mon Sep 17 00:00:00 2001
+From: Danesh Mondegarian <daneshm90@gmail.com>
+Date: Tue, 21 Aug 2012 09:25:22 -0400
+Subject: [PATCH] Lockscreen VolCtrls: don't raise volume on skipTrack
+
+Set mIsLongPress to true when longpress was successful to avoid
+volume from being changed on release
+---
+ policy/src/com/android/internal/policy/impl/PhoneWindowManager.java | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/policy/src/com/android/internal/policy/impl/PhoneWindowManager.java b/policy/src/com/android/internal/policy/impl/PhoneWindowManager.java
+index 8455c47..8783ffb 100644
+--- a/policy/src/com/android/internal/policy/impl/PhoneWindowManager.java
++++ b/policy/src/com/android/internal/policy/impl/PhoneWindowManager.java
+@@ -506,6 +506,7 @@ public void handleMessage(Message msg) {
+                     dispatchMediaKeyRepeatWithWakeLock((KeyEvent)msg.obj);
+                     break;
+                 case MSG_DISPATCH_VOLKEY_WITH_WAKE_LOCK:
++                    mIsLongPress = true;
+                     dispatchMediaKeyWithWakeLockToAudioService((KeyEvent)msg.obj);
+                     dispatchMediaKeyWithWakeLockToAudioService(KeyEvent.changeAction((KeyEvent)msg.obj, KeyEvent.ACTION_UP));
+                     break;
+-- 
+1.8.5.1
+

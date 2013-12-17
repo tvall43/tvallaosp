@@ -1,0 +1,30 @@
+From d92c78b11be37bb2dd85ddf82b49ec72d791d375 Mon Sep 17 00:00:00 2001
+From: rascarlo <rascarlo@gmail.com>
+Date: Sat, 9 Nov 2013 14:07:55 +0100
+Subject: [PATCH] Quick settings: mobile data tile. onClick opens mobile
+ network settings instead of DataUsage
+
+---
+ .../src/com/android/systemui/statusbar/phone/QuickSettings.java     | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/phone/QuickSettings.java b/packages/SystemUI/src/com/android/systemui/statusbar/phone/QuickSettings.java
+index 99d430b..db261b5 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/phone/QuickSettings.java
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/phone/QuickSettings.java
+@@ -443,11 +443,7 @@ public void refreshView(QuickSettingsTileView view, State state) {
+             rssiTile.setOnClickListener(new View.OnClickListener() {
+                 @Override
+                 public void onClick(View v) {
+-                    Intent intent = new Intent();
+-                    intent.setComponent(new ComponentName(
+-                            "com.android.settings",
+-                            "com.android.settings.Settings$DataUsageSummaryActivity"));
+-                    startSettingsActivity(intent);
++                    startSettingsActivity(android.provider.Settings.ACTION_DATA_ROAMING_SETTINGS);
+                 }
+             });
+             mModel.addRSSITile(rssiTile, new NetworkActivityCallback() {
+-- 
+1.8.4
+

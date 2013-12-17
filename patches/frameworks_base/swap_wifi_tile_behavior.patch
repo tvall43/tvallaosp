@@ -1,0 +1,66 @@
+From 167774445e150bce6f49c7b2ef509e7604e4daae Mon Sep 17 00:00:00 2001
+From: rascarlo <rascarlo@gmail.com>
+Date: Mon, 29 Jul 2013 12:14:56 +0200
+Subject: [PATCH] quicksettings: swap the behaviour of the wifi tile.
+
+onClick on/off
+onLongClick open wifi settings
+---
+ .../systemui/statusbar/phone/QuickSettings.java    | 35 +++++++++++-----------
+ 1 file changed, 17 insertions(+), 18 deletions(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/phone/QuickSettings.java b/packages/SystemUI/src/com/android/systemui/statusbar/phone/QuickSettings.java
+index 5423bb6..3edd642 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/phone/QuickSettings.java
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/phone/QuickSettings.java
+@@ -381,30 +381,29 @@ private void addSystemTiles(ViewGroup parent, LayoutInflater inflater) {
+         wifiTile.setOnClickListener(new View.OnClickListener() {
+             @Override
+             public void onClick(View v) {
+-                startSettingsActivity(android.provider.Settings.ACTION_WIFI_SETTINGS);
++                final boolean enable =
++                        (mWifiManager.getWifiState() != WifiManager.WIFI_STATE_ENABLED);
++                new AsyncTask<Void, Void, Void>() {
++                    @Override
++                    protected Void doInBackground(Void... args) {
++                        // Disable tethering if enabling Wifi
++                        final int wifiApState = mWifiManager.getWifiApState();
++                        if (enable && ((wifiApState == WifiManager.WIFI_AP_STATE_ENABLING) ||
++                                       (wifiApState == WifiManager.WIFI_AP_STATE_ENABLED))) {
++                            mWifiManager.setWifiApEnabled(null, false);
++                        }
++                        mWifiManager.setWifiEnabled(enable);
++                        return null;
++                    }
++                }.execute();
++                wifiTile.setPressed(false);
+             }
+         });
+         if (LONG_PRESS_TOGGLES) {
+             wifiTile.setOnLongClickListener(new View.OnLongClickListener() {
+                 @Override
+                 public boolean onLongClick(View v) {
+-                    final boolean enable =
+-                            (mWifiManager.getWifiState() != WifiManager.WIFI_STATE_ENABLED);
+-                    new AsyncTask<Void, Void, Void>() {
+-                        @Override
+-                        protected Void doInBackground(Void... args) {
+-                            // Disable tethering if enabling Wifi
+-                            final int wifiApState = mWifiManager.getWifiApState();
+-                            if (enable && ((wifiApState == WifiManager.WIFI_AP_STATE_ENABLING) ||
+-                                           (wifiApState == WifiManager.WIFI_AP_STATE_ENABLED))) {
+-                                mWifiManager.setWifiApEnabled(null, false);
+-                            }
+-
+-                            mWifiManager.setWifiEnabled(enable);
+-                            return null;
+-                        }
+-                    }.execute();
+-                    wifiTile.setPressed(false);
++                    startSettingsActivity(android.provider.Settings.ACTION_WIFI_SETTINGS);
+                     return true;
+                 }} );
+         }
+-- 
+1.8.4
+
